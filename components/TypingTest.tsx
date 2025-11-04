@@ -125,21 +125,26 @@ export default function TypingTest() {
   // Check if test is complete
   useEffect(() => {
     if (isTestActive && userInput.length >= targetText.length) {
-      const comparison = compareTexts(targetText, userInput);
-      const allCorrect = comparison.every((status) => status === "correct");
-
-      if (allCorrect) {
-        setIsTestActive(false);
-        setIsTestComplete(true);
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-        }
-        if (metricsUpdateRef.current) {
-          clearInterval(metricsUpdateRef.current);
-        }
+      // Immediately stop test when user reaches the end
+      setIsTestActive(false);
+      setIsTestComplete(true);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (metricsUpdateRef.current) {
+        clearInterval(metricsUpdateRef.current);
+      }
+      
+      // Calculate final metrics
+      if (startTime) {
+        const timeElapsed = (Date.now() - startTime) / 1000;
+        const metrics = getTypingMetrics(targetText, userInput, timeElapsed);
+        setWpm(metrics.wpm);
+        setAccuracy(metrics.accuracy);
+        setErrorCount(metrics.errorCount);
       }
     }
-  }, [userInput, targetText, isTestActive]);
+  }, [userInput, targetText, isTestActive, startTime]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (isTestComplete) return;
